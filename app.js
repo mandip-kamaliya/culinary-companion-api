@@ -3,6 +3,7 @@ import pool from "./src/database.js";
 const app = express();
 const port = 3000;
 
+app.use(express.json());
 //API ENDPOINTS
 
 app.get("/", (req, res) => {
@@ -54,10 +55,18 @@ app.get("/recipes/:id", async (req, res) => {
 });
 
 app.post("/recipes", async (req, res) => {
-  const { name, ingredients, instruction } = req.params;
+  const { name, ingredients, instructions } = req.body;
+
+    console.log('--- POST /recipes Debug ---');
+    console.log('Full req.body received:', JSON.stringify(req.body, null, 2));
+    console.log('Value of ingredients:', ingredients);
+    console.log('Type of ingredients:', typeof ingredients);
+    console.log('Is ingredients an Array (Array.isArray):', Array.isArray(ingredients));
+    console.log('--- END DEBUG ---');
+
   let client;
 
-  if (!name || !ingredients || !instruction) {
+  if (!name || !ingredients || !instructions ) {
     return res
       .status(400)
       .json({ message: "Name, ingredients, and instructions are required." });
@@ -70,13 +79,13 @@ app.post("/recipes", async (req, res) => {
     client = await pool.connect();
     const result = await client.query(
       `INSERT INTO recipes
-      (name,ingredients,instruction) 
-      values($1,$2,$3)`,
-      [name, ingredients, instruction]
+      (name,ingredients,instructions) 
+      values($1,$2,$3) RETURNING *`,
+      [name, ingredients, instructions]
     );
     const Newrecipe = result.rows[0];
     res
-      .status(200)
+      .status(201)
       .json({ message: "recipe added successfully!!!", recipe: Newrecipe });
   } catch (error) {
     res
