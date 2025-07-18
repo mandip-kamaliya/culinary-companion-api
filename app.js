@@ -130,6 +130,26 @@ app.put("/recipes/:id",async (req,res) =>{
   }
   })
 
+  //delete recipe
+
+  app.delete("/recipes/:id", async (req,res)=>{
+    const {id} = req.params
+    let client;
+    try {
+      client = await pool.connect();
+      const result = await client.query(`DELETE FROM recipes WHERE id=$1`,[id])
+      if(result.rowCount > 0){
+        res.status(200).json({message:"recipe delete successfully!!"})
+      }else{
+        res.status(404).json({message:"no recipe found for delete"})
+      }
+    } catch (error) {
+      res.status(500).json({message:"recipe deletetion failed!!",error:error.message})
+    }finally{
+      if(client) client.release()
+    }
+  })
+
 app.listen(port, (req, res) => {
   console.log(`app is listening to port number ${port}`);
 });
