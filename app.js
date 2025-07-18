@@ -81,7 +81,7 @@ app.post("/recipes", async (req, res) => {
       `INSERT INTO recipes
       (name,ingredients,instructions) 
       values($1,$2,$3) RETURNING *`,
-      [name, ingredients, instructions]
+      [name, JSON.stringify(ingredients), instructions]
     );
     const Newrecipe = result.rows[0];
     res
