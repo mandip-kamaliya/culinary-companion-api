@@ -96,6 +96,40 @@ app.post("/recipes", async (req, res) => {
   }
 });
 
+//update recipe
+
+app.put("/recipes/:id",async (req,res) =>{
+  const {id} = req.params
+  const {name, ingredients,instructions} = req.body
+  let client;
+
+  if(!name || !ingredients || !instructions){
+    return res.status(400).json({message:"name,ingredients or instructions misssing"})
+  }
+   if (!Array.isArray(ingredients)) {
+    // Ensure ingredients is an array
+    return res.status(400).json({ message: "Ingredients must be an array." });
+  }
+ 
+  try {
+    
+    client = await pool.connect();
+    const result =  await client.query(`UPDATE recipes 
+      SET name=$1, ingredients=$2, instructions=$3 WHERE id=$4`,
+      [name,JSON.stringify(ingredients),instructions,id])
+    if(result.rowCount>0){
+      const updatedresultquery = await client.query(`SELECT * FROM recipes WHERE id=$1`,[id])
+      const updatedresult = updatedresultquery.rows[0]
+      res.status(200).json({message:"recipe updated successfully",recipe:updatedresult})
+    }else{ res.status(404).json({ message: 'Recipe not found or no changes were made.' });
+    } 
+  } catch (error) {
+    res.status(500).json({message:"updation failed",error:error.message})
+  }finally{
+    if(client) client.release()
+  }
+  })
+
 app.listen(port, (req, res) => {
   console.log(`app is listening to port number ${port}`);
 });
