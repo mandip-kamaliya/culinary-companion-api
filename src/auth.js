@@ -11,7 +11,7 @@ async function hashpassword(plain_password){
 }
 
 async function comparepassword(plain_password,hashedPassword){
-  return  bcrypt.compare(plain_password,hashedPassword)
+  return  bcrypt.compare(plain_password,hashedPassword)   //compare password for authentication
 }
 
  function generateToken(user){
@@ -19,7 +19,7 @@ async function comparepassword(plain_password,hashedPassword){
         userId:user.id,
         username:user.username
     }
-    return  jwt.sign(payload,JWT_SECRET,{expiresIn:"4h"})
+    return jwt.sign(payload,JWT_SECRET,{expiresIn:"4h"})  //create jwt token and asign to login user
 }
 export{
     hashpassword,
