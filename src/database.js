@@ -27,6 +27,16 @@ async function initializeDatabaseSchema(){
       );
         `)
         console.log("schema inialize successfully");
+      await client.query(`
+          CREATE TABLE IF NOT EXISTS users(
+          id SERIEL PRIMARY KEY,
+          username VARCHAR(50) UNIQUE NOT NULL,
+          password_hash TEXT NOT NULL,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+          ) 
+        `)  
+        console.log("user schema initilized successfully")
+        
  } catch (error) {
     console.error(error);
     process.exit(1);
