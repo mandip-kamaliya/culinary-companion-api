@@ -184,6 +184,41 @@ app.put("/recipes/:id",async (req,res) =>{
     }
   })
 
+  //login user
+
+  app.post("/login",async (req,res)=>{
+    const {username,password} = req.body
+    let client = null
+
+    if(!username || !password){
+     return  res.status(400).json({message:"usename or password is missing !1"})
+    }
+
+    try {
+       client = await pool.connect();
+      const result = await client.query(`
+        SELECT * FROM users WHERE username=$1
+        `,[username])
+        const user  = result.rows[0]
+
+        if(!user){
+          return res.status(401).json({message:"INVALID CREDIENTIAL"})
+        }
+      const ismatching = await comparepassword(password,user.password_hash)  
+      if(!ismatching){
+        return  res.status(401).json({message:"INVALID CREDIENTIAL"})
+      }
+      const token = generateToken(user)
+      res.status(200).json({message:"user login successfully!!",token})
+    
+    } catch (error) {
+       console.error('Error logging in user:', error);
+        res.status(500).json({ message: 'Login failed due to server error.', error: error.message });
+    }finally{
+      if(client) client.release()
+    }
+  })
+
 app.listen(port, (req, res) => {
   console.log(`app is listening to port number ${port}`);
 });
