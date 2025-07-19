@@ -1,5 +1,6 @@
 import express from "express";
 import pool from "./src/database.js";
+import { hashpassword,comparepassword,generateToken } from "./src/auth.js";
 const app = express();
 const port = 3000;
 
@@ -145,6 +146,39 @@ app.put("/recipes/:id",async (req,res) =>{
       }
     } catch (error) {
       res.status(500).json({message:"recipe deletetion failed!!",error:error.message})
+    }finally{
+      if(client) client.release()
+    }
+  })
+
+  //register user
+
+  app.post("/register",async (req,res)=>{
+    const {username , password} = req.body
+    let client = null
+
+    if(!username || !password ){
+      return res.status(400).json({message:"username or password missing!!!"})
+    }
+    
+    try {
+      const client = await pool.connect()
+      const existinguser = await client.query(`
+            SELECT id FROM users WHERE username=$1` ,[username]
+        )
+       if(existinguser.rows.length>0){
+        return res.status(409).json({message:"username already exists!!"})
+       } 
+       const passwordhash = await hashpassword(password);
+       const result = await client.query(`       
+                    INSERT INTO users (username, password_hash) 
+                    VALUES ($1, $2) RETURNING id, username, created_at`,[username,passwordhash])
+        const newUser = result.rows[0];
+        const token  = generateToken(newUser)            
+        res.status(201).json({message:"user registered successfully!!",user:{id: newUser.id, username: newUser.username }, token })
+    } catch (error) {
+      console.error("user registration Failed!!",error)
+      res.status(500).json({message:"server error,cannot register user",error:error.message})
     }finally{
       if(client) client.release()
     }
