@@ -11,11 +11,12 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to the Recipe Service" });
 });
 
-app.get("/recipes", async (req, res) => {
+app.get("/recipes",authenticateToken, async (req, res) => {
   let client;
+  const userId = req.user.userId;
   try {
     client = await pool.connect();
-    const result = await client.query(`SELECT * FROM recipes`);
+    const result = await client.query(`SELECT * FROM recipes WHERE user_id=$1`,[userId]);
     res.json(result.rows);
   } catch (error) {
     console.error("api fetching error:", error);

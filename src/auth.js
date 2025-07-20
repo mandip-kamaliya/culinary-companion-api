@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import pool from "./database";
+import pool from "./database.js";
 
-JWT_SECRET=process.env.JWT_SECRET;
+const JWT_SECRET=process.env.JWT_SECRET;
 async function hashpassword(plain_password){
     //before hashing we give some random string to our password for security,(salt)
     const salt = await bcrypt.genSalt(10)  //create salt with 10 rounds
