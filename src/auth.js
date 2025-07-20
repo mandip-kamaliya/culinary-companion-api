@@ -21,8 +21,25 @@ async function comparepassword(plain_password,hashedPassword){
     }
     return jwt.sign(payload,JWT_SECRET,{expiresIn:"4h"})  //create jwt token and asign to login user
 }
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (token == null) {
+        return res.status(401).json({ message: "Authentication token missing." });
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).json({ message: "Invalid or expired token." });
+        }
+        req.user = user; // Attaches user info to the request
+        next();
+    });
+}
 export{
     hashpassword,
     comparepassword,
-    generateToken
+    generateToken,
+    authenticateToken
 }
